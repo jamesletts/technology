@@ -246,6 +246,33 @@ To test a fresh installation:
             user@host $ cd /tmp
             user@host $ get testfile
 
+HDFS (WIP)
+----------
+
+That was it. New instructions:
+
+I set up a namenode, datanode, and gridftp on the same SLF6 VM. I did:
+- edit {{/etc/hadoop/conf/hdfs-site.xml}}
+-- set {{dfs.replication}} to 1
+-- set {{dfs.replication.min}} to 1
+- {noformat}
+hadoop fs -mkdir /matyas
+hadoop fs -chown matyas /matyas
+hdfs dfsadmin -setSpaceQuota 123k /matyas
+{noformat}
+As matyas:
+{noformat}
+dd if=/dev/zero of=/tmp/blob bs=4096 count=10000
+kx509; voms-proxy-init -noregen -voms fermilab
+globus-url-copy -vb file:///tmp/blob gsiftp://`hostname -f`/mnt/hadoop/matyas
+{noformat}
+
+In the pre-patch version, the error was "Unknown error 255". In the post-patch version, the error was "Disk quota exceeded".
+
+I repeated the test on an SLF7 VM and got exactly the same results.
+
+Hadoop is not covered by osg-test, but the above commands should verify basic functionality (ls, mkdir, chown). With a sufficiently large quota, file transfers via {{globus-url-copy}} continued to work as expected. (Note: the quota must not only be greater than the file size, but greater than the amount of space HDFS consumes storing the file. In my case, the test file was ~40MB, but I needed to increase the quota above 256MB).
+
 HTCondor-CE Collector (WIP)
 ---------------------------
 
